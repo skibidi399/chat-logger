@@ -1,15 +1,31 @@
-export async function onRequestPost(context) {
-  const body = await context.request.json();
+let latestMessage = "";
 
-  // Store the latest message in memory (or DB if you want)
-  globalThis.latestMessage = body.message;
+exports.handler = async (event, context) => {
+  if (event.httpMethod === "POST") {
+    try {
+      const body = JSON.parse(event.body);
+      latestMessage = body.message || "";
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ ok: true })
+      };
+    } catch (err) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Invalid JSON" })
+      };
+    }
+  }
 
-  return new Response(JSON.stringify({ ok: true }));
-}
+  if (event.httpMethod === "GET") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: latestMessage })
+    };
+  }
 
-export async function onRequestGet(context) {
-  return new Response(
-    JSON.stringify({ message: globalThis.latestMessage || "" }),
-    { headers: { "Content-Type": "application/json" } }
-  );
-}
+  return {
+    statusCode: 405,
+    body: "Method Not Allowed"
+  };
+};
