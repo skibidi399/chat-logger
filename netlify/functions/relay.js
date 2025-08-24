@@ -1,31 +1,23 @@
-let latestMessage = "";
+let lastMessage = ""
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
   if (event.httpMethod === "POST") {
-    try {
-      const body = JSON.parse(event.body);
-      latestMessage = body.message || "";
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ ok: true })
-      };
-    } catch (err) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: "Invalid JSON" })
-      };
+    const data = JSON.parse(event.body)
+    lastMessage = data.message || ""
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ status: "ok", message: lastMessage })
     }
   }
 
   if (event.httpMethod === "GET") {
+    const temp = lastMessage
+    lastMessage = "" // clear after read
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: latestMessage })
-    };
+      body: JSON.stringify({ message: temp })
+    }
   }
 
-  return {
-    statusCode: 405,
-    body: "Method Not Allowed"
-  };
-};
+  return { statusCode: 405, body: "Method not allowed" }
+}
